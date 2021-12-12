@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,9 +45,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 if(!search.getText().toString().equals("")) {
-                    JsonTask x = new JsonTask();
-                    x.execute("https://api.openweathermap.org/data/2.5/weather?q=" + search.getText().toString() + "&appid=9001038ad02ff68e0a10d7337787d7bb&units=metric");
-                    //new JsonTask().execute("https://api.openweathermap.org/data/2.5/weather?q=" + search.getText().toString() + "&appid=9001038ad02ff68e0a10d7337787d7bb&units=metric");
+                    new JsonTask().execute("https://api.openweathermap.org/data/2.5/forecast?q=" + search.getText().toString() + "&cnt=9&appid=9001038ad02ff68e0a10d7337787d7bb&units=metric");
                 }else
                     Toast.makeText(getApplicationContext(),"Incorrect data",Toast.LENGTH_SHORT).show();
             }
@@ -122,14 +121,26 @@ public class MainActivity extends AppCompatActivity {
                 pd.dismiss();
             }
             try {
+                Switch simpleSwitch = (Switch) findViewById(R.id.switch1);
                 JSONObject jObject = new JSONObject(result);
-                JSONObject main = jObject.getJSONObject("main");
-                JSONArray jArray = jObject.getJSONArray("weather");
-                JSONObject oneObject = jArray.getJSONObject(0);
+                JSONArray list = jObject.getJSONArray("list");
+                JSONObject city = jObject.getJSONObject("city");
+                String cname = city.getString("name")+", "+city.getString("country");
+                JSONObject dzis = list.getJSONObject(0);
+                JSONObject jutro = list.getJSONObject(8);
+                JSONObject maind = dzis.getJSONObject("main");
+                JSONObject mainj = jutro.getJSONObject("main");
+                JSONArray wd =dzis.getJSONArray("weather");
+                JSONArray wj =jutro.getJSONArray("weather");
+
+                Log.d("tmep j ",wj.getJSONObject(0).getString("icon"));
+
                 ConstraintLayout x = findViewById(R.id.weather);
                 x.setVisibility(ConstraintLayout.VISIBLE);
                 TextView name = findViewById(R.id.name);
                 TextView temp = findViewById(R.id.temp);
+
+                TextView dt_txt = findViewById(R.id.dt_txt);
                 TextView feels_like = findViewById(R.id.feels_like);
                 TextView description = findViewById(R.id.description);
                 TextView pressure = findViewById(R.id.pressure);
@@ -137,16 +148,35 @@ public class MainActivity extends AppCompatActivity {
                 TextView temp_min = findViewById(R.id.temp_min);
                 TextView temp_max = findViewById(R.id.temp_max);
                 ImageView icon = findViewById(R.id.imageView3);
+                ico = "i01d";
+                name.setText(cname);
+                if(!simpleSwitch.isChecked()){//dzis
+                    temp.setText(maind.getString("temp")+"°C");
+                    dt_txt.setText(dzis.getString("dt_txt"));
+                    feels_like.setText(maind.getString("feels_like"));
+                    description.setText(wd.getJSONObject(0).getString("description"));
+                    pressure.setText(maind.getString("pressure")+" hPa");
+                    humidity.setText("Humidity: "+maind.getString("humidity")+"%");
+                    temp_min.setText("Min temp: "+maind.getString("temp_min")+"°C");
+                    temp_max.setText("Max temp: "+maind.getString("temp_max")+"°C");
+                    ico = "i"+wd.getJSONObject(0).getString("icon");
 
-                name.setText(jObject.getString("name"));
-                temp.setText(main.getString("temp")+"°C");
-                feels_like.setText("Feels like: "+main.getString("feels_like"));
-                description.setText(oneObject.getString("description"));
-                pressure.setText(main.getString("pressure")+" hPa");
-                humidity.setText("Humidity: "+main.getString("humidity")+"%");
-                temp_min.setText("Min temp: "+main.getString("temp_min")+"°C");
-                temp_max.setText("Max temp: "+main.getString("temp_max")+"°C");
-                ico = "i"+oneObject.getString("icon");
+                }
+                else{//jutro
+                    temp.setText(mainj.getString("temp")+"°C");
+                    dt_txt.setText(jutro.getString("dt_txt"));
+                    description.setText(wj.getJSONObject(0).getString("description"));
+                    pressure.setText(mainj.getString("pressure")+" hPa");
+                    humidity.setText("Humidity: "+mainj.getString("humidity")+"%");
+                    temp_min.setText("Min temp: "+mainj.getString("temp_min")+"°C");
+                    temp_max.setText("Max temp: "+mainj.getString("temp_max")+"°C");
+                    ico = "i"+wj.getJSONObject(0).getString("icon");
+
+
+                }
+
+
+
                 switch (ico){
                     case "i01d":
                         icon.setImageResource(R.drawable.i01d);
